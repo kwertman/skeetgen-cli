@@ -71,6 +71,32 @@ export async function sync_archive({ signal, logger, identifier, out_dir, with_m
 	return failed_blobs;
 }
 
+export interface RenderOptions {
+	signal: AbortSignal;
+	logger: Logger;
+	out_dir: string;
+}
+
+/** Regenerates the pages using only what's already in the archive. */
+export async function render_archive({ signal, logger, out_dir }: RenderOptions) {
+	let doc: DidDocument;
+
+	try {
+		doc = JSON.parse(await readFile(join(out_dir, 'data/did.json'), 'utf8'));
+	} catch (err) {
+		if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+			throw new Error(`No archive found in ${out_dir}, sync an account to it first.`);
+		}
+
+		throw err;
+	}
+
+	const records = await load_stored_records(join(out_dir, 'data/records.cbor'));
+	const post_count = await render_site(signal, logger, out_dir, doc, records);
+
+	logger.log(`Rendered ${post_count} posts to ${out_dir}`);
+}
+
 async function assert_same_owner(did_path: string, did: DID) {
 	let existing: DidDocument;
 

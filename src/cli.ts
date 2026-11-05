@@ -1,12 +1,14 @@
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
-import { sync_archive } from './archive/sync.ts';
+import { render_archive, sync_archive } from './archive/sync.ts';
 import { Logger } from './utils/logger.ts';
 
 const USAGE = `Keeps a local, browsable archive of a Bluesky account's posts.
 
-Usage: skeetgen <handle or did> [options]
+Usage:
+  skeetgen <handle or did> [options]  Download new posts and media, then regenerate the pages
+  skeetgen render [options]           Regenerate the pages from the archive, without downloading anything
 
 Options:
   -o, --out <dir>  Directory to keep the archive in (default: ./bluesky-archive)
@@ -52,6 +54,11 @@ async function main(): Promise<number> {
 	process.once('SIGTERM', () => controller.abort());
 
 	try {
+		if (positionals[0] === 'render') {
+			await render_archive({ signal: signal, logger: logger, out_dir: resolve(values.out) });
+			return 0;
+		}
+
 		const failed_blobs = await sync_archive({
 			signal: signal,
 			logger: logger,

@@ -36,6 +36,12 @@ The exit code is `0` on success, `1` if the sync failed or some media couldn't b
 retried on the next run), `2` on incorrect usage, and `130` if interrupted. Running it again after a failure
 is always safe, the existing archive is left as is until a full copy of the repository has been downloaded.
 
+To regenerate the pages from what's already in the archive, without downloading anything:
+
+```bash
+skeetgen render --out ~/bluesky-archive
+```
+
 ## What's in the archive
 
 ```
@@ -105,3 +111,9 @@ scheduled time, launchd runs the job when it wakes up.
 - `pnpm run fmt` formats the code
 
 Rendering lives in `src/templates`, archive styling and the search page's script live in `src_templates`.
+
+The stylesheet and templates are bundled into `dist/cli.js`, so to try out a design change, rebuild and render:
+
+```bash
+pnpm run build && node dist/cli.js render --out ~/bluesky-archive
+```
