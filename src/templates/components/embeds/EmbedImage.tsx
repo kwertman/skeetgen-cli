@@ -87,7 +87,13 @@ function render_img(img: EmbeddedImage, mode: RenderMode) {
 
 	return (
 		<div class={'EmbedImage__imageContainer ' + cn} style={{ 'aspect-ratio': ratio }}>
-			<img loading="lazy" src={get_blob_url(get_blob_str(img.image))} alt={alt} class="EmbedImage__image" />
+			<img
+				loading="lazy"
+				src={get_blob_url(get_blob_str(img.image))}
+				alt={alt}
+				title={alt || undefined}
+				class="EmbedImage__image"
+			/>
 		</div>
 	);
 }
