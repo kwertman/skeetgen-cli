@@ -31,10 +31,6 @@ export function SearchPage({}: SearchPageProps) {
 		for (const [rkey, post] of posts) {
 			const text = post.text;
 
-			if (!text.trim()) {
-				continue;
-			}
-
 			const ts = new Date(post.createdAt).getTime();
 			const is_ts_valid = !is_nan(ts);
 
@@ -66,6 +62,11 @@ export function SearchPage({}: SearchPageProps) {
 						}
 					}
 				}
+			}
+
+			// Nothing to search for in this post.
+			if (!text.trim() && !images.some((img) => img.alt.trim())) {
+				continue;
 			}
 
 			entries.push([
