@@ -30,6 +30,9 @@ export interface BaseContext {
 	};
 
 	post_graph: Map<string, PostGraphEntry>;
+
+	/** Image descriptions keyed by the image's CID, only meant for searching */
+	image_descriptions: Map<string, string>;
 }
 
 export interface PageContext extends BaseContext {

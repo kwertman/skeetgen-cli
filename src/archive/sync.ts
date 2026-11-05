@@ -7,6 +7,7 @@ import { write_file_atomic } from '../utils/fs.ts';
 import type { Logger } from '../utils/logger.ts';
 
 import { download_blobs } from './blobs.ts';
+import { describe_images } from './descriptions.ts';
 import { resolve_did, retrieve_did_document, type DID } from './identity.ts';
 import { download_repo, load_stored_records, read_repo_records, save_stored_records } from './repository.ts';
 import { render_site } from './site.ts';
@@ -17,10 +18,19 @@ export interface SyncOptions {
 	identifier: string;
 	out_dir: string;
 	with_media: boolean;
+	/** Vision model to describe images with, images aren't described if unset. */
+	describe_model: string | undefined;
 }
 
-/** Brings the archive up to date, returns the number of blobs that couldn't be retrieved. */
-export async function sync_archive({ signal, logger, identifier, out_dir, with_media }: SyncOptions) {
+/** Brings the archive up to date, returns how many blobs and image descriptions couldn't be retrieved. */
+export async function sync_archive({
+	signal,
+	logger,
+	identifier,
+	out_dir,
+	with_media,
+	describe_model,
+}: SyncOptions) {
 	const did_path = join(out_dir, 'data/did.json');
 	const car_path = join(out_dir, 'data/repo.car');
 	const records_path = join(out_dir, 'data/records.cbor');
@@ -60,7 +70,13 @@ export async function sync_archive({ signal, logger, identifier, out_dir, with_m
 		failed_blobs = await download_blobs(signal, logger, pds, did, join(out_dir, 'blobs'));
 	}
 
-	// 5. Generate pages
+	// 5. Describe any new images
+	let failed_descriptions = 0;
+	if (describe_model !== undefined) {
+		failed_descriptions = await describe_images(signal, logger, out_dir, records, describe_model);
+	}
+
+	// 6. Generate pages
 	const post_count = await render_site(signal, logger, out_dir, doc, records);
 
 	const is_post = (key: string) => key.startsWith('app.bsky.feed.post/');
@@ -68,17 +84,22 @@ export async function sync_archive({ signal, logger, identifier, out_dir, with_m
 
 	logger.log(`Archive has ${post_count} posts, ${post_count - live_count} of them no longer on Bluesky`);
 
-	return failed_blobs;
+	return { failed_blobs, failed_descriptions };
 }
 
 export interface RenderOptions {
 	signal: AbortSignal;
 	logger: Logger;
 	out_dir: string;
+	/** Vision model to describe images with, images aren't described if unset. */
+	describe_model: string | undefined;
 }
 
-/** Regenerates the pages using only what's already in the archive. */
-export async function render_archive({ signal, logger, out_dir }: RenderOptions) {
+/**
+ * Regenerates the pages using only what's already in the archive, returns how
+ * many image descriptions couldn't be retrieved.
+ */
+export async function render_archive({ signal, logger, out_dir, describe_model }: RenderOptions) {
 	let doc: DidDocument;
 
 	try {
@@ -92,9 +113,17 @@ export async function render_archive({ signal, logger, out_dir }: RenderOptions)
 	}
 
 	const records = await load_stored_records(join(out_dir, 'data/records.cbor'));
+
+	let failed_descriptions = 0;
+	if (describe_model !== undefined) {
+		failed_descriptions = await describe_images(signal, logger, out_dir, records, describe_model);
+	}
+
 	const post_count = await render_site(signal, logger, out_dir, doc, records);
 
 	logger.log(`Rendered ${post_count} posts to ${out_dir}`);
+
+	return failed_descriptions;
 }
 
 async function assert_same_owner(did_path: string, did: DID) {

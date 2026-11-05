@@ -16,7 +16,7 @@ const enum PostFlags {
 	HAS_EMBED_LIST = 1 << 4,
 }
 
-type PostImage = [url: string, alt: string];
+type PostImage = [url: string, alt: string, description: string];
 type PostEntry = [rkey: string, text: string, ts: number, flag: number, images: PostImage[]];
 
 const is_nan = Number.isNaN;
@@ -64,18 +64,18 @@ export function SearchPage({}: SearchPageProps) {
 				}
 			}
 
+			const post_images = images.map((img): PostImage => {
+				const cid = get_blob_str(img.image);
+
+				return [get_blob_url(cid), img.alt, ctx.image_descriptions.get(cid) ?? ''];
+			});
+
 			// Nothing to search for in this post.
-			if (!text.trim() && !images.some((img) => img.alt.trim())) {
+			if (!text.trim() && !post_images.some(([, alt, description]) => alt.trim() || description)) {
 				continue;
 			}
 
-			entries.push([
-				get_tid_segment(rkey),
-				text,
-				is_ts_valid ? ts : 0,
-				flag,
-				images.map((img): PostImage => [get_blob_url(get_blob_str(img.image)), img.alt]),
-			]);
+			entries.push([get_tid_segment(rkey), text, is_ts_valid ? ts : 0, flag, post_images]);
 		}
 	}
 

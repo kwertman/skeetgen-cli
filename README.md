@@ -35,11 +35,13 @@ pick up any changes.
 skeetgen-cli your-handle.bsky.social --out ~/bluesky-archive
 ```
 
-| Option         | Description                                                          |
-| -------------- | -------------------------------------------------------------------- |
-| `-o`, `--out`  | Directory to keep the archive in, defaults to `./bluesky-archive`    |
-| `--no-media`   | Don't download images and other media, images will show up as broken |
-| `-h`, `--help` | Show usage                                                           |
+| Option              | Description                                                                     |
+| ------------------- | ------------------------------------------------------------------------------- |
+| `-o`, `--out`       | Directory to keep the archive in, defaults to `./bluesky-archive`               |
+| `--no-media`        | Don't download images and other media, images will show up as broken            |
+| `--describe-images` | Make images searchable by their contents, see below                             |
+| `--model`           | Ollama vision model to describe images with, defaults to `gemma3:12b-it-q4_K_M` |
+| `-h`, `--help`      | Show usage                                                                      |
 
 Only public data is read, so no login is needed. Open `index.html` in the archive to browse it, no server is
 necessary.
@@ -54,6 +56,25 @@ To regenerate the pages from what's already in the archive, without downloading 
 skeetgen-cli render --out ~/bluesky-archive
 ```
 
+## Searching images by their contents
+
+With `--describe-images`, each image in your posts gets described by a vision model running on your machine,
+and the search page will find posts by those descriptions. Your images aren't sent anywhere. It needs
+[Ollama](https://ollama.com) to be running, with the model installed:
+
+```bash
+ollama pull gemma3:12b-it-q4_K_M
+skeetgen-cli render --describe-images --out ~/bluesky-archive
+```
+
+The flag also works when syncing, but is ignored if `--no-media` is set. Each image is only described once,
+descriptions are kept in `data/image-descriptions.json`, and they stay searchable on later runs even without
+the flag. Images that couldn't be described are retried on the next run with the flag, and the rest of the run
+carries on as usual, exiting with code `1`.
+
+Descriptions are only used for searching and aren't shown on the pages. They're written by an AI model, so
+they can be wrong. To regenerate them, such as after switching models, delete that file and run it again.
+
 ## What's in the archive
 
 ```
@@ -64,6 +85,7 @@ blobs/                    images and other media, named by their CID
 data/did.json             the account's DID document
 data/repo.car             the latest full copy of the account's repository, as served by its PDS
 data/records.cbor         every post, profile, feed, list and threadgate record seen so far
+data/image-descriptions.json   searchable image descriptions, if you've used --describe-images
 ```
 
 **Deleted posts stay in the archive.** Records are only ever added to or updated in `data/records.cbor`, so a

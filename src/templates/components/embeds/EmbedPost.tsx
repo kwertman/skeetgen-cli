@@ -2,6 +2,7 @@ import type { AppBskyFeedPost } from '@mary/bluesky-client/lexicons';
 
 import { get_page_context } from '../../context.ts';
 import { format_abs_date } from '../../intl/time.ts';
+import { get_post_images } from '../../utils/embed.ts';
 import { get_blob_url, get_post_url } from '../../utils/url.ts';
 
 import EmbedImage from './EmbedImage.tsx';
@@ -69,21 +70,3 @@ function EmbedPost({ rkey, record, large }: EmbedPostProps) {
 }
 
 export default EmbedPost;
-
-function get_post_images(post: AppBskyFeedPost.Record) {
-	const embed = post.embed;
-
-	if (embed) {
-		const $type = embed.$type;
-
-		if ($type === 'app.bsky.embed.images') {
-			return embed.images;
-		} else if ($type === 'app.bsky.embed.recordWithMedia') {
-			const media = embed.media;
-
-			if (media.$type === 'app.bsky.embed.images') {
-				return media.images;
-			}
-		}
-	}
-}

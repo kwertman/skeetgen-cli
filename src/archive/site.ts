@@ -26,6 +26,7 @@ import { WelcomePage } from '../templates/pages/WelcomePage.tsx';
 import { write_file_atomic } from '../utils/fs.ts';
 import type { Logger } from '../utils/logger.ts';
 
+import { load_image_descriptions } from './descriptions.ts';
 import type { RecordMap } from './repository.ts';
 
 export async function render_site(
@@ -76,6 +77,7 @@ export async function render_site(
 				threadgates: threadgates,
 			},
 			post_graph: create_posts_graph(did.id as At.DID, posts),
+			image_descriptions: await load_image_descriptions(out_dir),
 
 			profile: {
 				did: did.id as At.DID,

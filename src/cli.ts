@@ -1,6 +1,7 @@
 import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
+import { DEFAULT_MODEL } from './archive/descriptions.ts';
 import { render_archive, sync_archive } from './archive/sync.ts';
 import { Logger } from './utils/logger.ts';
 
@@ -11,9 +12,12 @@ Usage:
   skeetgen-cli render [options]           Regenerate the pages from the archive, without downloading anything
 
 Options:
-  -o, --out <dir>  Directory to keep the archive in (default: ./bluesky-archive)
-      --no-media   Don't download images and other media
-  -h, --help       Show this message
+  -o, --out <dir>      Directory to keep the archive in (default: ./bluesky-archive)
+      --no-media       Don't download images and other media
+      --describe-images
+                       Make images searchable by their contents, using a local Ollama model
+      --model <name>   Ollama vision model to describe images with (default: ${DEFAULT_MODEL})
+  -h, --help           Show this message
 `;
 
 async function main(): Promise<number> {
@@ -25,6 +29,8 @@ async function main(): Promise<number> {
 			options: {
 				out: { type: 'string', short: 'o', default: 'bluesky-archive' },
 				'no-media': { type: 'boolean', default: false },
+				'describe-images': { type: 'boolean', default: false },
+				model: { type: 'string', default: DEFAULT_MODEL },
 				help: { type: 'boolean', short: 'h', default: false },
 			},
 		});
@@ -50,27 +56,53 @@ async function main(): Promise<number> {
 
 	const logger = new Logger();
 
+	if (values['describe-images'] && values['no-media']) {
+		logger.warn(`Ignoring --describe-images, as --no-media is set`);
+	}
+
+	const describe_model = values['describe-images'] && !values['no-media'] ? values.model : undefined;
+
+	const warn_failed_descriptions = (failed: number) => {
+		if (failed > 0) {
+			logger.error(`${failed} images couldn't be described, the next run will retry them`);
+		}
+	};
+
 	process.once('SIGINT', () => controller.abort());
 	process.once('SIGTERM', () => controller.abort());
 
 	try {
 		if (positionals[0] === 'render') {
-			await render_archive({ signal: signal, logger: logger, out_dir: resolve(values.out) });
-			return 0;
+			const failed_descriptions = await render_archive({
+				signal: signal,
+				logger: logger,
+				out_dir: resolve(values.out),
+				describe_model: describe_model,
+			});
+
+			warn_failed_descriptions(failed_descriptions);
+			return failed_descriptions > 0 ? 1 : 0;
 		}
 
-		const failed_blobs = await sync_archive({
+		const { failed_blobs, failed_descriptions } = await sync_archive({
 			signal: signal,
 			logger: logger,
 			identifier: positionals[0].replace(/^@/, ''),
 			out_dir: resolve(values.out),
 			with_media: !values['no-media'],
+			describe_model: describe_model,
 		});
+
+		warn_failed_descriptions(failed_descriptions);
 
 		if (failed_blobs > 0) {
 			logger.error(
 				`Finished, but ${failed_blobs} blobs couldn't be downloaded, the next run will retry them`,
 			);
+			return 1;
+		}
+
+		if (failed_descriptions > 0) {
 			return 1;
 		}
 

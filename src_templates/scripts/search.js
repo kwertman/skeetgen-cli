@@ -2,7 +2,7 @@ import * as FlexSearch from '@akryum/flexsearch-es';
 
 import { app, h, memo, text } from './dependencies/hyperapp.js';
 
-/** @typedef {[rkey: string, text: string, timestamp: number, flags: number, images: [url: string, alt: string][], search_text?: string] & { idx: number }} PostEntry */
+/** @typedef {[rkey: string, text: string, timestamp: number, flags: number, images: [url: string, alt: string, description: string][], search_text?: string] & { idx: number }} PostEntry */
 
 /** @type {FlexSearch.Document<PostEntry, true>} */
 const index = new FlexSearch.Document({
@@ -33,8 +33,8 @@ const index = new FlexSearch.Document({
 			/** @type {PostEntry} */
 			const entry = entries[i];
 
-			// Search through the post's text and image descriptions as one field
-			entry[5] = [entry[1], ...entry[4].map((image) => image[1])].join('\n');
+			// Search through the post's text, alt text and image descriptions as one field
+			entry[5] = [entry[1], ...entry[4].flatMap((image) => [image[1], image[2]])].join('\n');
 
 			index.add(entry);
 		}
