@@ -17,6 +17,19 @@ pnpm link --global # optional, makes `skeetgen` available everywhere
 
 Without the global link, use `node dist/cli.js` in place of `skeetgen`.
 
+### Standalone executable
+
+To get a single binary that doesn't need Node.js or anything else from this project to run:
+
+```bash
+pnpm run compile
+```
+
+This creates `dist/skeetgen`, which you can copy anywhere on your `PATH`, and which also works in place of
+`/absolute/path/to/node /absolute/path/to/skeetgen/dist/cli.js` in the scheduling examples below. It's around
+90 MB as it includes a JavaScript runtime ([Bun](https://bun.sh)), and it only runs on the OS and CPU it was
+built on. Recompile to pick up any changes.
+
 ## Usage
 
 ```bash
