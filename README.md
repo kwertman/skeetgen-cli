@@ -25,10 +25,9 @@ To get a single binary that doesn't need Node.js or anything else from this proj
 pnpm run compile
 ```
 
-This creates `dist/skeetgen`, which you can copy anywhere on your `PATH`, and which also works in place of
-`/absolute/path/to/node /absolute/path/to/skeetgen/dist/cli.js` in the scheduling examples below. It's around
-90 MB as it includes a JavaScript runtime ([Bun](https://bun.sh)), and it only runs on the OS and CPU it was
-built on. Recompile to pick up any changes.
+This creates `dist/skeetgen`, which you can copy anywhere on your `PATH`. It's around 90 MB as it includes a
+JavaScript runtime ([Bun](https://bun.sh)), and it only runs on the OS and CPU it was built on. Recompile to
+pick up any changes.
 
 ## Usage
 
@@ -74,49 +73,6 @@ directory and sync again.
 Each archive belongs to a single account, syncing a different account to the same directory is an error.
 
 Video posts are archived in `data/` and `blobs/`, but the generated pages don't display the video.
-
-## Running it periodically
-
-### launchd (macOS)
-
-Save this as `~/Library/LaunchAgents/skeetgen.plist`, using absolute paths for everything:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-	<dict>
-		<key>Label</key>
-		<string>skeetgen</string>
-		<key>ProgramArguments</key>
-		<array>
-			<string>/absolute/path/to/node</string>
-			<string>/absolute/path/to/skeetgen/dist/cli.js</string>
-			<string>your-handle.bsky.social</string>
-			<string>--out</string>
-			<string>/Users/you/bluesky-archive</string>
-		</array>
-		<key>StartCalendarInterval</key>
-		<dict>
-			<key>Hour</key>
-			<integer>3</integer>
-			<key>Minute</key>
-			<integer>0</integer>
-		</dict>
-		<key>StandardErrorPath</key>
-		<string>/Users/you/bluesky-archive.log</string>
-	</dict>
-</plist>
-```
-
-Then load it with `launchctl load ~/Library/LaunchAgents/skeetgen.plist`. If your Mac is asleep at the
-scheduled time, launchd runs the job when it wakes up.
-
-### cron
-
-```
-0 3 * * * /absolute/path/to/node /absolute/path/to/skeetgen/dist/cli.js your-handle.bsky.social --out "$HOME/bluesky-archive" 2>> "$HOME/bluesky-archive.log"
-```
 
 ## Development
 
