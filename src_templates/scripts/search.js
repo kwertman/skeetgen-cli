@@ -2,7 +2,7 @@ import * as FlexSearch from '@akryum/flexsearch-es';
 
 import { app, h, memo, text } from './dependencies/hyperapp.js';
 
-/** @typedef {[rkey: string, text: string, timestamp: number, flags: number] & { idx: number }} PostEntry */
+/** @typedef {[rkey: string, text: string, timestamp: number, flags: number, images: [url: string, alt: string][]] & { idx: number }} PostEntry */
 
 /** @type {FlexSearch.Document<PostEntry, true>} */
 const index = new FlexSearch.Document({
@@ -127,14 +127,30 @@ const index = new FlexSearch.Document({
 	}
 
 	function render_search_item({ item }) {
-		const [rkey, post_text, ts, flags] = item;
+		const [rkey, post_text, ts, , images] = item;
+		const href = `posts/${rkey}.html`;
 
 		return h('div', { class: 'SearchItem__content' }, [
-			h('a', { href: `posts/${rkey}.html`, class: 'SearchItem__timestamp' }, [
+			h('a', { href: href, class: 'SearchItem__timestamp' }, [
 				text(ts === 0 ? 'N/A' : abs_with_time.format(ts)),
 			]),
 			h('p', { class: 'SearchItem__body' }, [text(post_text)]),
-			(flags & HAS_EMBED_IMAGE) !== 0 && h('p', { class: 'SearchItem__accessory' }, text('[image]')),
+			images.length > 0 &&
+				h(
+					'div',
+					{ class: 'SearchItem__images' },
+					images.map(([url, alt]) =>
+						h('a', { href: href, class: 'SearchItem__imageLink' }, [
+							h('img', {
+								loading: 'lazy',
+								src: url,
+								alt: alt,
+								title: alt || undefined,
+								class: 'SearchItem__image',
+							}),
+						]),
+					),
+				),
 		]);
 	}
 }

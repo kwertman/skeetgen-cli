@@ -30,6 +30,12 @@
 .SearchItem__body {
 	@apply whitespace-pre-wrap break-words;
 }
-.SearchItem__accessory {
-	@apply mt-[2px];
+.SearchItem__images {
+	@apply mt-[8px] flex gap-[4px];
+}
+.SearchItem__imageLink {
+	@apply min-w-0 max-w-[160px] grow basis-0;
+}
+.SearchItem__image {
+	@apply aspect-square w-full rounded-md border object-cover text-[0px];
 }

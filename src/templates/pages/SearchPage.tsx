@@ -1,7 +1,8 @@
 import { html } from '@intrnl/jsx-to-string';
 
-import { get_page_context } from '../context.ts';
-import { get_asset_url, get_tid_segment } from '../utils/url.ts';
+import { get_blob_str, get_page_context } from '../context.ts';
+import type { EmbeddedImage } from '../utils/embed.ts';
+import { get_asset_url, get_blob_url, get_tid_segment } from '../utils/url.ts';
 
 import Page from '../components/Page.tsx';
 
@@ -15,7 +16,8 @@ const enum PostFlags {
 	HAS_EMBED_LIST = 1 << 4,
 }
 
-type PostEntry = [rkey: string, text: string, ts: number, flag: number];
+type PostImage = [url: string, alt: string];
+type PostEntry = [rkey: string, text: string, ts: number, flag: number, images: PostImage[]];
 
 const is_nan = Number.isNaN;
 
@@ -37,6 +39,7 @@ export function SearchPage({}: SearchPageProps) {
 			const is_ts_valid = !is_nan(ts);
 
 			let flag = 0;
+			let images: EmbeddedImage[] = [];
 
 			{
 				const embed = post.embed;
@@ -47,6 +50,7 @@ export function SearchPage({}: SearchPageProps) {
 						flag |= PostFlags.HAS_EMBED_LINK;
 					} else if ($type === 'app.bsky.embed.images') {
 						flag |= PostFlags.HAS_EMBED_IMAGE;
+						images = embed.images;
 					} else if ($type === 'app.bsky.embed.record') {
 						flag |= PostFlags.HAS_EMBED_RECORD;
 					} else if ($type === 'app.bsky.embed.recordWithMedia') {
@@ -58,12 +62,19 @@ export function SearchPage({}: SearchPageProps) {
 							flag |= PostFlags.HAS_EMBED_LINK;
 						} else if ($mediatype === 'app.bsky.embed.images') {
 							flag |= PostFlags.HAS_EMBED_IMAGE;
+							images = embed.media.images;
 						}
 					}
 				}
 			}
 
-			entries.push([get_tid_segment(rkey), text, is_ts_valid ? ts : 0, flag]);
+			entries.push([
+				get_tid_segment(rkey),
+				text,
+				is_ts_valid ? ts : 0,
+				flag,
+				images.map((img): PostImage => [get_blob_url(get_blob_str(img.image)), img.alt]),
+			]);
 		}
 	}
 
