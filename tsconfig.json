@@ -1,8 +1,8 @@
 {
 	"compilerOptions": {
 		"target": "ESNext",
-		"lib": ["DOM", "DOM.Iterable", "ESNext"],
-		"types": [],
+		"lib": ["ESNext"],
+		"types": ["node"],
 		"skipLibCheck": true,
 
 		"module": "ESNext",

@@ -1,28 +1,107 @@
+# skeetgen
+
+A command line tool that keeps a local, browsable archive of a Bluesky account's posts. Run it as often as
+you like: each run updates the same archive, and only downloads media it doesn't have yet.
+
+Forked from [mary's skeetgen](https://codeberg.org/mary-ext/skeetgen), which runs in the browser.
+
+## Setup
+
+Requires Node.js 22 or newer.
+
+```bash
+pnpm install
+pnpm run build
+pnpm link --global # optional, makes `skeetgen` available everywhere
+```
+
+Without the global link, use `node dist/cli.js` in place of `skeetgen`.
+
 ## Usage
 
 ```bash
-$ npm install # or pnpm install or yarn install
+skeetgen your-handle.bsky.social --out ~/bluesky-archive
 ```
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
+| Option         | Description                                                          |
+| -------------- | -------------------------------------------------------------------- |
+| `-o`, `--out`  | Directory to keep the archive in, defaults to `./bluesky-archive`    |
+| `--no-media`   | Don't download images and other media, images will show up as broken |
+| `-h`, `--help` | Show usage                                                           |
 
-## Available Scripts
+Only public data is read, so no login is needed. Open `index.html` in the archive to browse it, no server is
+necessary.
 
-In the project directory, you can run:
+The exit code is `0` on success, `1` if the sync failed or some media couldn't be downloaded (those will be
+retried on the next run), `2` on incorrect usage, and `130` if interrupted. Running it again after a failure
+is always safe, the existing archive is left as is until a full copy of the repository has been downloaded.
 
-### `npm run dev`
+## What's in the archive
 
-Runs the app in the development mode.<br>
-Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
+```
+index.html, search.html   start here
+timeline/, posts/         generated pages, rewritten on every run
+assets/                   stylesheet and search script
+blobs/                    images and other media, named by their CID
+data/did.json             the account's DID document
+data/repo.car             the latest full copy of the account's repository, as served by its PDS
+data/records.cbor         every post, profile, feed, list and threadgate record seen so far
+```
 
-### `npm run build`
+**Deleted posts stay in the archive.** Records are only ever added to or updated in `data/records.cbor`, so a
+post you delete on Bluesky stays in your archive, as does its media. To really remove one, delete the archive
+directory and sync again.
 
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
+Each archive belongs to a single account, syncing a different account to the same directory is an error.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+Video posts are archived in `data/` and `blobs/`, but the generated pages don't display the video.
 
-## Deployment
+## Running it periodically
 
-Learn more about deploying your application with the [documentations](https://vitejs.dev/guide/static-deploy.html)
+### launchd (macOS)
+
+Save this as `~/Library/LaunchAgents/skeetgen.plist`, using absolute paths for everything:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>Label</key>
+		<string>skeetgen</string>
+		<key>ProgramArguments</key>
+		<array>
+			<string>/absolute/path/to/node</string>
+			<string>/absolute/path/to/skeetgen/dist/cli.js</string>
+			<string>your-handle.bsky.social</string>
+			<string>--out</string>
+			<string>/Users/you/bluesky-archive</string>
+		</array>
+		<key>StartCalendarInterval</key>
+		<dict>
+			<key>Hour</key>
+			<integer>3</integer>
+			<key>Minute</key>
+			<integer>0</integer>
+		</dict>
+		<key>StandardErrorPath</key>
+		<string>/Users/you/bluesky-archive.log</string>
+	</dict>
+</plist>
+```
+
+Then load it with `launchctl load ~/Library/LaunchAgents/skeetgen.plist`. If your Mac is asleep at the
+scheduled time, launchd runs the job when it wakes up.
+
+### cron
+
+```
+0 3 * * * /absolute/path/to/node /absolute/path/to/skeetgen/dist/cli.js your-handle.bsky.social --out "$HOME/bluesky-archive" 2>> "$HOME/bluesky-archive.log"
+```
+
+## Development
+
+- `pnpm run build` type checks and builds everything into `dist/cli.js`
+- `pnpm run fmt` formats the code
+
+Rendering lives in `src/templates`, archive styling and the search page's script live in `src_templates`.

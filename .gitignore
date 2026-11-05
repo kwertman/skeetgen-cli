@@ -1,9 +1,8 @@
-/deploy/
 /node_modules/
 /dist/
 /.wireit/
 
-/public/archive_assets/
+/gen/
 
 .npm-*.log
 .pnpm-*.log
