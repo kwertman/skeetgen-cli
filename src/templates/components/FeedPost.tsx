@@ -2,7 +2,7 @@ import type { AppBskyFeedPost } from '@mary/bluesky-client/lexicons';
 
 import { get_page_context } from '../context.ts';
 import { format_abs_date, format_abs_date_time } from '../intl/time.ts';
-import { get_blob_url, get_post_url } from '../utils/url.ts';
+import { get_blob_url, get_post_bsky_app_url, get_post_url } from '../utils/url.ts';
 
 import Embed from './Embed.tsx';
 import RichTextRenderer from './RichTextRenderer.tsx';
@@ -72,6 +72,20 @@ function FeedPost({ rkey, post, always_show_replies, has_prev, has_next }: FeedP
 
 						<a href={href} aria-label={format_abs_date_time(post.createdAt)} class="FeedPost__date">
 							<time datetime={post.createdAt}>{format_abs_date(post.createdAt)}</time>
+						</a>
+
+						<span aria-hidden="true" class="FeedPost__dot">
+							·
+						</span>
+
+						<a
+							href={get_post_bsky_app_url(rkey)}
+							target="_blank"
+							rel="noopener noreferrer"
+							aria-label="View in bsky.app"
+							class="FeedPost__date"
+						>
+							bsky.app
 						</a>
 					</div>
 

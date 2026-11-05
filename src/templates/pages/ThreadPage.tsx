@@ -194,7 +194,7 @@ export function ThreadPage({ rkey, post }: ThreadPageProps) {
 				</details>
 			) : null}
 
-			<PermalinkPost post={post} />
+			<PermalinkPost rkey={rkey} post={post} />
 
 			<hr />
 

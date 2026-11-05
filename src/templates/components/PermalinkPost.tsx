@@ -4,16 +4,17 @@ import type { AppBskyFeedPost } from '@mary/bluesky-client/lexicons';
 
 import { get_page_context } from '../context.ts';
 import { format_abs_date_time } from '../intl/time.ts';
-import { get_blob_url } from '../utils/url.ts';
+import { get_blob_url, get_post_bsky_app_url } from '../utils/url.ts';
 
 import Embed from './Embed.tsx';
 import RichTextRenderer from './RichTextRenderer.tsx';
 
 interface PermalinkPostProps {
+	rkey: string;
 	post: AppBskyFeedPost.Record;
 }
 
-function PermalinkPost({ post }: PermalinkPostProps) {
+function PermalinkPost({ rkey, post }: PermalinkPostProps) {
 	const ctx = get_page_context();
 
 	return (
@@ -54,6 +55,14 @@ function PermalinkPost({ post }: PermalinkPostProps) {
 				<time datetime={post.createdAt} class="PermalinkPost__date">
 					{format_abs_date_time(post.createdAt)}
 				</time>
+
+				<span aria-hidden="true" class="PermalinkPost__dot">
+					·
+				</span>
+
+				<a href={get_post_bsky_app_url(rkey)} target="_blank" rel="noopener noreferrer" class="Link">
+					view in bsky.app
+				</a>
 			</div>
 		</div>
 	);

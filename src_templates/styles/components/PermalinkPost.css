@@ -49,3 +49,6 @@
 .PermalinkPost__date {
 	@apply text-neutral-400/100;
 }
+.PermalinkPost__dot {
+	@apply select-none px-[4px] text-neutral-400/100;
+}

@@ -44,6 +44,12 @@ export function get_bsky_app_url(uri: At.Uri) {
 	throw new Error(`unsupported uri: ${uri}`);
 }
 
+export function get_post_bsky_app_url(rkey: string) {
+	const ctx = get_page_context();
+
+	return get_bsky_app_url(`at://${ctx.profile.did}/app.bsky.feed.post/${rkey}`);
+}
+
 export function get_tid_segment(rkey: string) {
 	// Use whatever's left after removing the last 10 characters as the bucket.
 	const split = -10;
