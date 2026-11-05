@@ -2,10 +2,10 @@
 	"packageManager": "pnpm@9.1.0",
 	"private": true,
 	"type": "module",
-	"name": "bluesky-archiver",
+	"name": "skeetgen-cli",
 	"scripts": {
 		"build": "tsc && pnpm run gen && vite build",
-		"compile": "pnpm run build && bun build --compile dist/cli.js --outfile dist/skeetgen",
+		"compile": "pnpm run build && bun build --compile dist/cli.js --outfile dist/skeetgen-cli",
 		"start": "node dist/cli.js",
 		"gen": "wireit",
 		"fmt": "prettier --cache --write ."
@@ -61,7 +61,7 @@
 		"wireit": "^0.14.4"
 	},
 	"bin": {
-		"skeetgen": "dist/cli.js"
+		"skeetgen-cli": "dist/cli.js"
 	},
 	"engines": {
 		"node": ">=22"

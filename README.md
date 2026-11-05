@@ -1,4 +1,4 @@
-# skeetgen
+# skeetgen-cli
 
 A command line tool that keeps a local, browsable archive of a Bluesky account's posts. Run it as often as
 you like: each run updates the same archive, and only downloads media it doesn't have yet.
@@ -12,10 +12,10 @@ Requires Node.js 22 or newer.
 ```bash
 pnpm install
 pnpm run build
-pnpm link --global # optional, makes `skeetgen` available everywhere
+pnpm link --global # optional, makes `skeetgen-cli` available everywhere
 ```
 
-Without the global link, use `node dist/cli.js` in place of `skeetgen`.
+Without the global link, use `node dist/cli.js` in place of `skeetgen-cli`.
 
 ### Standalone executable
 
@@ -25,14 +25,14 @@ To get a single binary that doesn't need Node.js or anything else from this proj
 pnpm run compile
 ```
 
-This creates `dist/skeetgen`, which you can copy anywhere on your `PATH`. It's around 90 MB as it includes a
+This creates `dist/skeetgen-cli`, which you can copy anywhere on your `PATH`. It's around 90 MB as it includes a
 JavaScript runtime ([Bun](https://bun.sh)), and it only runs on the OS and CPU it was built on. Recompile to
 pick up any changes.
 
 ## Usage
 
 ```bash
-skeetgen your-handle.bsky.social --out ~/bluesky-archive
+skeetgen-cli your-handle.bsky.social --out ~/bluesky-archive
 ```
 
 | Option         | Description                                                          |
@@ -51,7 +51,7 @@ is always safe, the existing archive is left as is until a full copy of the repo
 To regenerate the pages from what's already in the archive, without downloading anything:
 
 ```bash
-skeetgen render --out ~/bluesky-archive
+skeetgen-cli render --out ~/bluesky-archive
 ```
 
 ## What's in the archive

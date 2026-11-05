@@ -7,8 +7,8 @@ import { Logger } from './utils/logger.ts';
 const USAGE = `Keeps a local, browsable archive of a Bluesky account's posts.
 
 Usage:
-  skeetgen <handle or did> [options]  Download new posts and media, then regenerate the pages
-  skeetgen render [options]           Regenerate the pages from the archive, without downloading anything
+  skeetgen-cli <handle or did> [options]  Download new posts and media, then regenerate the pages
+  skeetgen-cli render [options]           Regenerate the pages from the archive, without downloading anything
 
 Options:
   -o, --out <dir>  Directory to keep the archive in (default: ./bluesky-archive)
